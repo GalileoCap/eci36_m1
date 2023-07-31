@@ -1,0 +1,63 @@
+%&pdflatex
+\documentclass[../main.tex]{subfiles}
+
+\begin{document}
+
+\section{Exercise 2}
+\label{sec:ex2}
+
+\paragraph{} In this algorithm, \texttt{count} is intended to keep track of the number \(n\) of distinct elements in \(Z\). But, since Bloom filters use hashes to add and check if an element was added to it, there is a possibility of hash collisions. \\
+Since it is possible for all distinct elements to collide and also its possible that none of them to collide, the naive bounds for \(count\) would be:
+\begin{align*}
+  0 \leq count \leq n
+\end{align*}
+
+\paragraph{} We also know that the parameters \(M\) and \(k\) of the Bloom filter were chosen to have a rate of false positives \(fp \leq 0.01\) for \(N\) (the size of \(Z\)) elements. \\
+This makes it so for each check after the first one there is a probability of \(fp\) that the check returns a false positive and a unique element is not counted. \\
+Note that Bloom filters are deterministic in their checks, so if an element returns true to its presence it will do so for all occurrences of this element in \(Z\). \\ 
+If we take \(tp = 1 - fp\) the probability of a true positive and a new unique element is correctly counted. This gives us that each distinct element follows a random variable \(X_{i} \sim Binom(1,\ tp)\) for \(1 \leq i \leq n\).
+
+\paragraph{} Noting that regardless of the chosen parameters the first element to be checked is guaranteed to give a true false since the bitvector begins with all zeros, we then have that \(count = 1 + \sum_{i = 2}^{n}X_{i} \sim 1 + Binom(n - 1,\ tp)\). Thus its expected value \(E(count)\) and variance \(V(count)\) are:
+\begin{align*}
+  E(count) &= 1 + (n - 1) \cdot tp \\
+           &= 1 + (n - 1) \cdot (1 - fp) & tp = 1 - fp \\
+           &\leq 1 + (n - 1) \cdot (1 - 0.01) & fp \leq 0.01 \\
+           &\leq 1 + (n - 1) \cdot 0.99 \\
+           &\leq 1 + 0.99n - 0.99 \\
+  E(count) &\leq 0.99n + 0.01 \\
+\end{align*}
+\begin{align*}
+  V(count) &= (n - 1) \cdot tp \cdot (1 - tp) \\
+           &= (n - 1) \cdot (1 - fp) \cdot (1 - (1 - fp)) & tp = 1 - fp \\
+           &= (n - 1)) \cdot (1 - fp) \cdot fp \\
+           &\leq (n - 1) \cdot (1 - 0.01) \cdot 0.01 & fp \leq 0.01 \\
+           &\leq (n - 1) \cdot 0.99 \cdot 0.01 \\
+  V(count) &\leq 0.0099(n - 1) \\
+\end{align*}
+
+\paragraph{} By taking \(fp = 0.01\), which would be the worst case within the desired range, we have that \(count \sim 1 + Binom(n-1,\ 0.99)\), \(E(count) = 0.99n + 0.01\), and \(V(count) = 0.0099(n-1)\). \\
+And using the Central Limit Theorem, for a large enough \(n\), \(count \sim N(E(count), V(count))\). This allows us to estimate a range of most likely values for count, shown in table \ref{tab:ex1}.
+
+\begin{table}[h!]
+  \centering
+  \begin{center}
+  \begin{tabular}{| c | c | c |}
+    \hline
+    \(n\) & Lower bound for \(count\) & Upper bound for \(count\) \\ 
+    \hline
+    10 & 9 & 10 \\ 
+    100 & 97 & 100 \\ 
+    1000 & 983 & 996 \\ 
+    10000 & 9880 & 9919 \\ 
+    100000 & 98937 & 99062 \\ 
+    \hline
+  \end{tabular}
+  \end{center}
+
+\caption{Ranges of \(count\) for specific values of \(n\) such that there is a \(95\%\) change that \(count\) is within the range.}
+\label{tab:ex1}
+\end{table}
+
+\paragraph{} It is clear then that while \(count\) is a good approximation of the number of distinct elements in \(Z\) very quickly its tends to miss the true value of \(n\) being under by around \(1\%\).
+
+\end{document}
