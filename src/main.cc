@@ -1,13 +1,16 @@
 #include <utility>
 #include <iostream>
 #include <vector>
+#include <map>
 
 struct Bolt {
   int _width;
+  int idx; // Index within the vector
 };
 
 struct Nut {
   int _width;
+  int idx; // Index within the vector
   bool used;
 };
 
@@ -25,16 +28,14 @@ enum Match match(const struct Bolt &bolt, const struct Nut &nut) {
   else return Large;
 }
 
-std::vector<int> solve(int n, std::vector<struct Bolt> &bolts, std::vector<struct Nut> &nuts) {
-  std::vector<int> res;
-  res.reserve(n);
+std::map<int, int> solve(int n, std::vector<struct Bolt> &bolts, std::vector<struct Nut> &nuts) {
+  std::map<int, int> res;
 
   for (const auto& bolt : bolts) {
-    for (int i = 0; i < n; i++) {
-      struct Nut &nut = nuts[i];
+    for (struct Nut &nut : nuts) {
       if (!nut.used && match(bolt, nut) == Fits) {
         nut.used = true;
-        res.push_back(i);
+        res[bolt.idx] = nut.idx;
         break;
       }
     }
@@ -51,21 +52,21 @@ int main() {
     bolts.reserve(n);
     for (int i = 0, x; i < n; i++) {
       std::cin >> x;
-      bolts.push_back(Bolt{x});
+      bolts.push_back(Bolt{x, i});
     }
 
     // Read nuts
     std::vector<struct Nut> nuts;
     for (int i = 0, x; i < n; i++) {
       std::cin >> x;
-      nuts.push_back(Nut{x, false});
+      nuts.push_back(Nut{x, i, false});
     }
 
-    std::vector<int> res = solve(n, bolts, nuts);
+    std::map<int, int> res = solve(n, bolts, nuts);
 
     // Report result
-    for (int idx : res)
-      std::cout << idx << " ";
+    for (int i = 0; i < n; i++)
+      std::cout << res[i] << " ";
     std::cout << std::endl;
   }
 }
