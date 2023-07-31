@@ -28,7 +28,7 @@ enum Match match(const struct Bolt &bolt, const struct Nut &nut) {
   else return Large;
 }
 
-std::map<int, int> solve(int n, std::vector<struct Bolt> &bolts, std::vector<struct Nut> &nuts) {
+std::map<int, int> solve(std::vector<struct Bolt> &bolts, std::vector<struct Nut> &nuts) {
   std::map<int, int> res;
 
   for (const auto& bolt : bolts) {
@@ -62,7 +62,7 @@ int main() {
       nuts.push_back(Nut{x, i, false});
     }
 
-    std::map<int, int> res = solve(n, bolts, nuts);
+    std::map<int, int> res = solve(bolts, nuts);
 
     // Report result
     for (int i = 0; i < n; i++)
