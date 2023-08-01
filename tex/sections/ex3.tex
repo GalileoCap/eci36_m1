@@ -7,33 +7,103 @@
 \label{sec:ex3}
 
 \paragraph{} Each node \(x\) in a skip list \(S\) is in \(h_{x} = height(x)\) lists and it holds \(h_{x}\) pointers to the next nodes in each level. \\
-At the lowest level each jump skips over zero nodes, this would allow us to perform both operations in \(\Theta(n)\) time by simply moving over this level. \\
-But, at higher levels each jump skips over some number of nodes in lower levels (depending on chance and the parameter \(p\) of the skip list).
+Each jump skips over a number of nodes. At the lowest level each jump skips over zero nodes, but at higher levels each jump skips over some number of nodes in lower levels (depending on chance and the parameter \(p\) of the skip list). I define the width of a jump as the number of nodes skipped \(+1\).
 
-\paragraph{} I propose that to be able to perform both operations in \(\Theta(\log n)\) time we would need to have the number of elements in the list that each jump skips over. This would allow us to calculate the rank of the rank of a node \(x\) (notated \(rank(x)\)) by doing a search for this node. \\
-For the first operation, which I will name \texttt{findIth(\(i\))}, it would suffice to find the element which skips over \(i\) elements. This can be done with one search in \(\Theta(\log n)\). \\
-And for the second operation, which I will name \texttt{elemsInRange(\(k_{1}\), \(k_{2}\))}, we would need to find the first element \(x_{1}\) with a key \(k'_{1} \geq k_{1}\) and the first element \(x_{2}\) with a key \(k'_{2} > k_{2}\), and then there are \(rank(x_{2}) - rank(x_{1})\) elements in the specified range. Which can be done with two searches in \(\Theta(\log n)\). \\ % TODO: -1?
+\paragraph{} I propose that by keeping track of the width of each jump in all levels we would be able to perform both operations in \(\Theta(\log n)\) time, because this would allow us to calculate the rank of a node \(x\) (notated \(rank(x)\)) by doing a search for this node and adding the widths of all jumps done. \\
+For the first operation, which I will name \texttt{findIth(\(i\))}, it would suffice to find the skips over \(i-1\) elements. This can be done with one search in \(\Theta(\log n)\). \\
+And for the second operation, which I will name \texttt{elemsInRange(\(k_{1}\), \(k_{2}\))}, we would need to find the first element \(x_{1}\) with a key \(k'_{1} > k_{1}\) and the first element \(x_{2}\) with a key \(k'_{2} > k_{2}\), and then there are \(rank(x_{2}) - rank(x_{1})\) elements in the specified range. Which can be done with four searches in \(\Theta(\log n)\).
 
 \paragraph{} Then, to keep track of the elements each jump skips over insertion and deletion would have to be modified as such:
+\begin{itemize}
+  \item \texttt{Insert}, should keep track of the width the jumps between the previous nodes and the next nodes to the new node. \\
+    For the \(0-th\) level the width is always 1, and for the \(l-th\) level it is the sum of all jumps in the \((l-1)-th\) level. \\
+    The width of the jumps from the previous nodes to the current are then these calculated widths. And the width from this node to the next nodes are the widths from the previous nodes to the next nodes minus the calculated widths.
+  \item \texttt{Remove}, while connecting the previous nodes to the next nodes, the width of the jumps should be added.
+\end{itemize}
+
+\paragraph{} Then, for \texttt{findIth(\(i\))} we can perform the following algorithm which is a modified search, and thus it runs in \(\Theta(\log n)\) time.
 
 \begin{algorithm}
-\caption{\texttt{Insert(k, v, S)}}
-\label{alg:ex2.insert}
+\caption{\texttt{findIth(\(i, S\))}}
+\label{alg:ex2.findIth}
 \begin{algorithmic}
-  \State \(p := S.\text{header}; l := S.\text{height}\)
-  \State create array \(pred\) of pointers of size \(S.\text{height}\)
-  \State create array \(skips\) of integers of size \(S.\text{height}\)
-  \For{\(1 \leq i \leq S.\text{height}\)}
-    \State \(pred[i] := S.\text{header}\)
-  \EndFor
-  \While{\(l > 0\)}
-    \If{\(p \rightarrow \text{next}[l] = \textbf{null} \lor k \leq p \rightarrow \text{next}[l] \rightarrow \text{key}\)}
-      \State \(pred[l] := p, l := l - 1\)
+  \State \(p := S.\text{head}; l := S.\text{height}\)
+  \State \(currentRank := 0\)
+  \While {\(l > 0\)}
+    \If {\(p \rightarrow \text{next}[l] = \textbf{null} \lor i < (currentRank + p \rightarrow \text{width}[l])\)}
+      \State \(l := l - 1\)
     \Else
+      \State \(currentRank := currentRank + p \rightarrow \text{width}[l]\)
       \State \(p := p \rightarrow \text{next}[l]\)
     \EndIf
   \EndWhile
+  \State \Return \(p \rightarrow \text{next}[1]\)
 \end{algorithmic}
 \end{algorithm}
+
+\paragraph{} And for \texttt{elemsInRange(\(k_{1}\), \(k_{2}\))} the following methods are needed. In total six searches are done, thus its complexity is \(\Theta(\log n)\).
+
+\begin{algorithm}
+\caption{\texttt{rank(\(k, S\))}}
+\label{alg:ex2.rank}
+\begin{algorithmic}
+  \State \(p := S.\text{head}; l := S.\text{height}\)
+  \State \(currentRank := 0\)
+  \While {\(l > 0\)}
+    \If {\(p \rightarrow \text{next}[l] = \textbf{null} \lor \text{key} < p \rightarrow \text{next}[l] \rightarrow \text{key}\)}
+      \State \(l := l - 1\)
+    \Else
+      \State \(currentRank := currentRank + p \rightarrow \text{width}[l]\)
+      \State \(p := p \rightarrow \text{next}[l]\)
+    \EndIf
+  \EndWhile
+  \State \Return \(currentRank\)
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+\caption{\texttt{findNext(\(k, S\))}}
+\label{alg:ex2.findNext}
+\begin{algorithmic}
+  \State \(r := rank(k)\)
+  \State \Return \(findIth(r+1)\)
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+\caption{\texttt{elemsInRange(\(k_{1}, k_{2}, S\))}}
+\label{alg:ex2.elemsInRange}
+\begin{algorithmic}
+  \State \(x_{1} := findNext(k_{1})\)
+  \State \(x_{2} := findNext(k_{2})\)
+  \State \Return \(rank(x_{2} \rightarrow \text{key}) - rank(x_{1} \rightarrow \text{key})\)
+\end{algorithmic}
+\end{algorithm}
+
+%\begin{algorithm}
+%\caption{\texttt{Insert(\(k, v, S\))}}
+%\label{alg:ex2.insert}
+%\begin{algorithmic}
+  %\State \(p := S.\text{header}; l := S.\text{height}\)
+  %\State create array \(pred\) of pointers of size \(S.\text{height}\)
+  %\State create array \(skips\) of integers of size \(S.\text{height}\)
+  %\For{\(1 \leq i \leq S.\text{height}\)}
+    %\State \(pred[i] := S.\text{header}\)
+  %\EndFor
+  %\While{\(l > 0\)}
+    %\If{\(p \rightarrow \text{next}[l] = \textbf{null} \lor k \leq p \rightarrow \text{next}[l] \rightarrow \text{key}\)}
+      %\State \(pred[l] := p, l := l - 1\)
+    %\Else
+      %\State \(p := p \rightarrow \text{next}[l]\)
+      %\State
+    %\EndIf
+  %\EndWhile
+  %\If{\(p \rightarrow \text{next}[1] = \textbf{null} \lor k \neq p \rightarrow \text{next}[1] \rightarrow \text{key}\)}
+    %\State
+  %\Else
+    %\State \(p \rigtharrow \text{next}[1] \rigtharrow \text{value} := v\)
+  %\EndIf
+%\end{algorithmic}
+%\end{algorithm}
 
 \end{document}
