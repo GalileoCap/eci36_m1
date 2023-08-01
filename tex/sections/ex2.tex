@@ -7,9 +7,9 @@
 \label{sec:ex2}
 
 \paragraph{} In this algorithm, \texttt{count} is intended to keep track of the number \(n\) of distinct elements in \(Z\). But, since Bloom filters use hashes to add and check if an element was added to it, there is a possibility of hash collisions. \\
-Since it is possible for all distinct elements to collide and also its possible that none of them to collide, the naive bounds for \(count\) would be:
+Since it is possible for all distinct elements after the first one to collide and also its possible that none of them collide, the naive bounds for \(count\) would be:
 \begin{align*}
-  0 \leq count \leq n
+  1 \leq count \leq n
 \end{align*}
 
 \paragraph{} We also know that the parameters \(M\) and \(k\) of the Bloom filter were chosen to have a rate of false positives \(fp \leq 0.01\) for \(N\) (the size of \(Z\)) elements. \\
@@ -29,7 +29,7 @@ If we take \(tp = 1 - fp\) the probability of a true positive and a new unique e
 \begin{align*}
   V(count) &= (n - 1) \cdot tp \cdot (1 - tp) \\
            &= (n - 1) \cdot (1 - fp) \cdot (1 - (1 - fp)) & tp = 1 - fp \\
-           &= (n - 1)) \cdot (1 - fp) \cdot fp \\
+           &= (n - 1) \cdot (1 - fp) \cdot fp \\
            &\leq (n - 1) \cdot (1 - 0.01) \cdot 0.01 & fp \leq 0.01 \\
            &\leq (n - 1) \cdot 0.99 \cdot 0.01 \\
   V(count) &\leq 0.0099(n - 1) \\
@@ -47,8 +47,9 @@ And using the Central Limit Theorem, for a large enough \(n\), \(count \sim N(E(
     \hline
     10 & 9 & 10 \\ 
     100 & 97 & 100 \\ 
-    1000 & 970 & 1009 \\ 
-    10000 & 9702 & 10097 \\ 
+    1000 & 983 & 996 \\ 
+    10000 & 9880 & 9919 \\ 
+    100000 & 98937 & 99062 \\ 
     \hline
   \end{tabular}
   \end{center}
@@ -57,6 +58,6 @@ And using the Central Limit Theorem, for a large enough \(n\), \(count \sim N(E(
 \label{tab:ex1}
 \end{table}
 
-\paragraph{} It is clear then that while \(count\) is a good approximation of the number of distinct elements in \(Z\), there is a \(\pm 1\%\) error rate.
+\paragraph{} It is clear then that while \(count\) is a good approximation of the number of distinct elements in \(Z\), for larger numbers of \(n\) this approximation will most likely be off by around \(2\%\). 
 
 \end{document}
