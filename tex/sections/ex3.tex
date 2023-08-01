@@ -6,4 +6,34 @@
 \section{Exercise 3}
 \label{sec:ex3}
 
+\paragraph{} Each node \(x\) in a skip list \(S\) is in \(h_{x} = height(x)\) lists and it holds \(h_{x}\) pointers to the next nodes in each level. \\
+At the lowest level each jump skips over zero nodes, this would allow us to perform both operations in \(\Theta(n)\) time by simply moving over this level. \\
+But, at higher levels each jump skips over some number of nodes in lower levels (depending on chance and the parameter \(p\) of the skip list).
+
+\paragraph{} I propose that to be able to perform both operations in \(\Theta(\log n)\) time we would need to have the number of elements in the list that each jump skips over. This would allow us to calculate the rank of the rank of a node \(x\) (notated \(rank(x)\)) by doing a search for this node. \\
+For the first operation, which I will name \texttt{findIth(\(i\))}, it would suffice to find the element which skips over \(i\) elements. This can be done with one search in \(\Theta(\log n)\). \\
+And for the second operation, which I will name \texttt{elemsInRange(\(k_{1}\), \(k_{2}\))}, we would need to find the first element \(x_{1}\) with a key \(k'_{1} \geq k_{1}\) and the first element \(x_{2}\) with a key \(k'_{2} > k_{2}\), and then there are \(rank(x_{2}) - rank(x_{1})\) elements in the specified range. Which can be done with two searches in \(\Theta(\log n)\). \\ % TODO: -1?
+
+\paragraph{} Then, to keep track of the elements each jump skips over insertion and deletion would have to be modified as such:
+
+\begin{algorithm}
+\caption{\texttt{Insert(k, v, S)}}
+\label{alg:ex2.insert}
+\begin{algorithmic}
+  \State \(p := S.\text{header}; l := S.\text{height}\)
+  \State create array \(pred\) of pointers of size \(S.\text{height}\)
+  \State create array \(skips\) of integers of size \(S.\text{height}\)
+  \For{\(1 \leq i \leq S.\text{height}\)}
+    \State \(pred[i] := S.\text{header}\)
+  \EndFor
+  \While{\(l > 0\)}
+    \If{\(p \rightarrow \text{next}[l] = \textbf{null} \lor k \leq p \rightarrow \text{next}[l] \rightarrow \text{key}\)}
+      \State \(pred[l] := p, l := l - 1\)
+    \Else
+      \State \(p := p \rightarrow \text{next}[l]\)
+    \EndIf
+  \EndWhile
+\end{algorithmic}
+\end{algorithm}
+
 \end{document}
